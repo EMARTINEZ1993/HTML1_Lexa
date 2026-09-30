@@ -32,3 +32,7 @@ HTML1_Lexa/
 ## Licencia
 
 Este proyecto es de uso educativo y libre para consultar o reutilizar con fines de aprendizaje.
+
+## Contribuciones
+
+¿Encontraste algo que mejorar? Los pull requests son bienvenidos.
