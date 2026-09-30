@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de Creación y Despliegue - Lexa kom Trikru</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- JSZip & FileSaver para la descarga de la carpeta img -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fef2f2',
+                            100: '#ffe1e1',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                            800: '#991b1b',
+                            900: '#7f1d1d',
+                        },
+                        dark: {
+                            bg: '#0f172a',
+                            card: '#1e293b',
+                            border: '#334155',
+                            code: '#090d16'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Styles for Preview Tab Simulation */
+        .preview-body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333333;
+        }
+        .preview-cabecera {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .preview-cabecera h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            text-transform: uppercase;
+        }
+        .preview-cabecera p {
+            margin: 10px 0 0 0;
+            font-style: italic;
+            color: #aaaaaa;
+        }
+        .preview-bloque {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 5px;
+            color: #333;
+        }
+        .preview-bloque h2 {
+            color: #1a1a1a;
+            border-bottom: 2px solid #333333;
+            padding-bottom: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .preview-bloque p {
+            text-align: justify;
+            margin-bottom: 15px;
+        }
+        .preview-bloque strong {
+            color: #8b0000;
+        }
+        .preview-galeria {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 5px;
+        }
+        .preview-galeria h2 {
+            color: #1a1a1a;
+            border-bottom: 2px solid #333333;
+            padding-bottom: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .preview-galeria-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        .preview-galeria img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 3px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        @media (min-width: 640px) {
+            .preview-galeria img {
+                width: 31%;
+            }
+        }
+        .preview-lista {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #222222;
+            color: #ffffff;
+            border-radius: 5px;
+        }
+        .preview-lista h2 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .preview-lista ul {
+            list-style-type: square;
+            padding-left: 20px;
+        }
+        .preview-lista li {
+            margin-bottom: 10px;
+        }
+        .preview-pie {
+            text-align: center;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: #777777;
+            margin-top: 40px;
+        }
+        .preview-pie p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Regla global para prevenir scroll horizontal */
+        html, body {
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+    </style>
+</head>
+<body class="bg-dark-bg text-slate-200 font-sans min-h-screen flex flex-col overflow-x-hidden w-full max-w-full relative">
+
+    <!-- Interactive Dot Grid Canvas (Stitch Style Proximity Effect) -->
+    <canvas id="dot-grid-canvas" class="fixed inset-0 pointer-events-none z-0 w-full h-full"></canvas>
+
+    <!-- Top Header -->
+    <header class="bg-dark-card/90 backdrop-blur-md border-b border-dark-border sticky top-0 z-50 w-full">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="hidden md:flex items-center space-x-2 text-xs text-slate-400 bg-slate-800/60 px-3 py-1.5 rounded-full border border-slate-700">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Introducción HTML & CSS</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container with Sidebar + Content Layout -->
+    <div class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row gap-6">
+
+        <!-- Navigation Menu -->
+        <nav class="w-full md:w-64 flex-shrink-0">
+            <div class="bg-dark-card border border-dark-border rounded-xl p-3 sticky top-22 shadow-xl">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider px-3 py-2">Secciones</p>
+                <div class="space-y-1">
+                    <button onclick="switchTab('introduccion')" id="btn-introduccion" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 bg-brand-700 text-white shadow-md">
+                        <i class="fa-solid fa-desktop w-5 text-center"></i>
+                            <span>0. Introduccion Tema</span>
+                    </button>
+                    <button onclick="switchTab('resultado')" id="btn-resultado" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-solid fa-desktop w-5 text-center"></i>
+                        <span>1. Resultado Vista Previa</span>
+                    </button>
+                    <button onclick="switchTab('estructura')" id="btn-estructura" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-solid fa-folder-tree w-5 text-center"></i>
+                        <span>2. Carpetas</span>
+                    </button>
+                    <button onclick="switchTab('html')" id="btn-html" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-brands fa-html5 w-5 text-center text-orange-500"></i>
+                        <span>3. Código index.html</span>
+                    </button>
+                    <button onclick="switchTab('css')" id="btn-css" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-brands fa-css3-alt w-5 text-center text-blue-500"></i>
+                        <span>4. Código style.css</span>
+                    </button>
+                    <button onclick="switchTab('github')" id="btn-github" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-brands fa-github w-5 text-center"></i>
+                        <span>5. Publicar en GitHub</span>
+                    </button>
+                    <button onclick="switchTab('pages')" id="btn-pages" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-solid fa-globe w-5 text-center text-emerald-400"></i>
+                        <span>6. GitHub Pages</span>
+                    </button>
+
+                </div>
+            </div>
+        </nav>
+
+        <!-- Tab Contents Container -->
+        <main class="flex-1 min-w-0">
+            <section id="tab-introduccion" class="tab-content space-y-4 block">
+                <div class="bg-dark-card border border-dark-border rounded-xl p-5">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-book-open text-brand-500"></i>
+                        Introducción a HTML y CSS
+                    </h2>
+                    <p class="text-sm text-slate-400 mt-2">Conoce las herramientas que dan estructura y estilo a este proyecto antes de explorar su código.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <article class="bg-dark-card border border-dark-border rounded-xl p-5 space-y-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                                <i class="fa-brands fa-html5 text-orange-500"></i>
+                                ¿Qué es HTML?
+                            </h3>
+                            <p class="text-sm text-slate-300 mt-2">HTML es el lenguaje de marcado que organiza el contenido de una página. Sus etiquetas indican qué función cumple cada elemento, como un título, un párrafo, una imagen o una sección.</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-sm font-semibold text-orange-300 mb-2">Etiquetas utilizadas en este proyecto</h4>
+                            <table class="w-full table-fixed text-left text-sm">
+                                <thead class="border-b border-dark-border text-slate-400">
+                                    <tr>
+                                        <th scope="col" class="w-2/5 py-2 pr-2 font-medium">Etiqueta</th>
+                                        <th scope="col" class="py-2 font-medium">Uso</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-slate-300">
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-orange-300">&lt;header&gt;</code></td><td class="py-2 align-top break-words">Cabecera</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-orange-300">&lt;main&gt;</code></td><td class="py-2 align-top break-words">Contenido principal</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-orange-300">&lt;section&gt;</code></td><td class="py-2 align-top break-words">Sección temática</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-orange-300">&lt;footer&gt;</code></td><td class="py-2 align-top break-words">Pie de página</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-orange-300">&lt;h1&gt;–&lt;h2&gt;</code></td><td class="py-2 align-top break-words">Títulos</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-orange-300">&lt;p&gt;</code></td><td class="py-2 align-top break-words">Párrafo</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-orange-300">&lt;img&gt;</code></td><td class="py-2 align-top break-words">Imagen</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-orange-300">&lt;ul&gt; / &lt;li&gt;</code></td><td class="py-2 align-top break-words">Lista</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-orange-300">&lt;strong&gt;</code></td><td class="py-2 align-top break-words">Énfasis importante</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-orange-300">&lt;em&gt;</code></td><td class="py-2 align-top break-words">Énfasis</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-orange-300">&lt;div&gt;</code></td><td class="py-2 align-top break-words">Contenedor</td></tr>
+                                    <tr><td class="py-2 pr-2 align-top"><code class="break-all text-orange-300">&lt;link&gt;</code></td><td class="py-2 align-top break-words">Hoja de estilos</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="border-t border-dark-border pt-3">
+                            <h4 class="text-sm font-semibold text-orange-300 mb-2">Atributos HTML del proyecto</h4>
+                            <p class="text-sm text-slate-300"><code class="text-orange-300">class</code> asigna estilos; <code class="text-orange-300">id</code> identifica un elemento; <code class="text-orange-300">src</code> indica la ruta de una imagen; <code class="text-orange-300">alt</code> describe la imagen; <code class="text-orange-300">href</code> indica la ruta de un recurso; <code class="text-orange-300">onclick</code> ejecuta una acción; <code class="text-orange-300">target</code> y <code class="text-orange-300">rel</code> configuran enlaces. <code class="text-orange-300">lang</code>, <code class="text-orange-300">charset</code>, <code class="text-orange-300">name</code> y <code class="text-orange-300">content</code> aportan información del documento.</p>
+                        </div>
+                    </article>
+
+                    <article class="bg-dark-card border border-dark-border rounded-xl p-5 space-y-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                                <i class="fa-brands fa-css3-alt text-blue-400"></i>
+                                ¿Qué es CSS?
+                            </h3>
+                            <p class="text-sm text-slate-300 mt-2">CSS es el lenguaje que define la apariencia de los elementos HTML: colores, tamaños, espacios y distribución. En este proyecto, los estilos de la página tributo están organizados en <code class="text-blue-300">CSS/style.css</code>.</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-sm font-semibold text-blue-300 mb-2">Propiedades CSS utilizadas</h4>
+                            <table class="w-full table-fixed text-left text-sm">
+                                <thead class="border-b border-dark-border text-slate-400">
+                                    <tr>
+                                        <th scope="col" class="w-2/5 py-2 pr-2 font-medium">Propiedad</th>
+                                        <th scope="col" class="py-2 font-medium">Uso</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-slate-300">
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-blue-300">color</code></td><td class="py-2 align-top break-words">Color del texto</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-blue-300">background-color</code></td><td class="py-2 align-top break-words">Fondo</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-blue-300">font-family</code></td><td class="py-2 align-top break-words">Tipografía</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-blue-300">font-size</code></td><td class="py-2 align-top break-words">Tamaño del texto</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-blue-300">text-align</code></td><td class="py-2 align-top break-words">Alineación</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-blue-300">margin</code></td><td class="py-2 align-top break-words">Espacio exterior</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-blue-300">padding</code></td><td class="py-2 align-top break-words">Espacio interior</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-blue-300">max-width</code></td><td class="py-2 align-top break-words">Ancho máximo</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-blue-300">display</code></td><td class="py-2 align-top break-words">Tipo de distribución</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-blue-300">gap</code></td><td class="py-2 align-top break-words">Espacio entre elementos</td></tr>
+                                    <tr class="border-b border-dark-border/70"><td class="py-2 pr-2 align-top"><code class="break-all text-blue-300">height / width</code></td><td class="py-2 align-top break-words">Dimensiones</td></tr>
+                                    <tr><td class="py-2 pr-2 align-top"><code class="break-all text-blue-300">object-fit</code></td><td class="py-2 align-top break-words">Ajuste de imágenes</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="border-t border-dark-border pt-3">
+                            <h4 class="text-sm font-semibold text-blue-300 mb-2">¿Cómo trabajan juntos?</h4>
+                            <p class="text-sm text-slate-300">HTML crea la estructura y CSS la presenta. Por ejemplo, la etiqueta <code class="text-orange-300">&lt;header&gt;</code> define la cabecera, mientras que una regla CSS puede darle un fondo oscuro, texto centrado y espacio interior.</p>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- TAB 1: RESULTADO (PÁGINA ORIGINAL) -->
+            <section id="tab-resultado" class="tab-content space-y-4 hidden">
+                <div class="bg-dark-card border border-dark-border rounded-xl p-4 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-window-restore text-brand-500"></i>
+                            Página Original (Vista Previa Interactiva)
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Así es exactamente como debe verse y funcionar tu proyecto renderizado en el navegador.</p>
+                    </div>
+                    <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs px-2.5 py-1 rounded-md font-mono hidden sm:inline-block">
+                        Status: Eli
+                    </span>
+                </div>
+
+                <!-- Simulation Wrapper -->
+                <div class="border-2 border-dark-border rounded-xl overflow-hidden shadow-2xl bg-white">
+                    <!-- Browser Bar Header -->
+                    <div class="bg-slate-900 border-b border-slate-700 px-4 py-2.5 flex items-center space-x-2">
+                        <div class="flex space-x-1.5">
+                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        </div>
+                        <div class="flex-1 ml-4 bg-slate-800 rounded-md text-xs font-mono text-slate-300 px-3 py-1 flex items-center justify-between overflow-hidden">
+                            <span class="truncate">https://tu-usuario.github.io/mi-proyecto/index.html</span>
+                            <i class="fa-solid fa-lock text-emerald-400 text-xs ml-2"></i>
+                        </div>
+                    </div>
+
+                    <!-- Rendered Simulated Page Content -->
+                    <div class="preview-body max-h-[650px] overflow-y-auto">
+                        <!-- Cabecera -->
+                        <header class="preview-cabecera">
+                            <h1>Lexa kom Trikru</h1>
+                            <p>Heda de la Coalición de los Doce Clanes</p>
+                        </header>
+
+                        <!-- Contenido -->
+                        <main class="preview-bloque">
+                            <h2>Biografía del Personaje</h2>
+                            <p>Lexa fue una líder visionaria de la serie <em>Los 100</em>. Destacó por su frialdad estratégica, su búsqueda de la paz y su icónico lema: <strong>"Jus drein jus daun"</strong> (la sangre pide sangre), el cual intentó cambiar para romper el ciclo de violencia.</p>
+                            <p>Su liderazgo unió por primera vez a tribus históricamente enemigas para enfrentar amenazas comunes, demostrando una sabiduría superior a su edad.</p>
+                        </main>
+
+                        <!-- Galería -->
+                        <section class="preview-galeria">
+                            <h2>Galería de la Comandante</h2>
+                            <div class="preview-galeria-grid">
+                                <img src="img/images.jpeg" >
+                                <img src="img/lexa.jpeg" >
+                                <img src="img/lexa3.jpg" >
+                            </div>
+                        </section>
+
+                        <!-- Detalles -->
+                        <section class="preview-lista">
+                            <h2>Aspectos Destacados</h2>
+                            <ul>
+                                <li><strong>Origen:</strong> Clan del Bosque (Trikru).</li>
+                                <li><strong>Título:</strong> Comandante (Heda).</li>
+                                <li><strong>Alianza:</strong> Creadora de la Coalición de los 12 Clanes.</li>
+                                <li><strong>Relación clave:</strong> Clarke Griffin (Clexa).</li>
+                            </ul>
+                        </section>
+
+                        <!-- Pie -->
+                        <footer class="preview-pie">
+                            <p>&copy; 2026 - Tributo a Los 100. Creado con HTML y CSS estructurado.</p>
+                        </footer>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: ESTRUCTURA DE CARPETAS -->
+            <section id="tab-estructura" class="tab-content space-y-4 hidden">
+                <div class="bg-dark-card border border-dark-border rounded-xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2 mb-1">
+                            <i class="fa-solid fa-folder-tree text-yellow-500"></i>
+                            Estructura del Proyecto de Archivos
+                        </h2>
+                        <p class="text-sm text-slate-400">Es indispensable organizar tus archivos exactamente con esta jerarquía en tu computadora para que las rutas relativas funcionen correctamente.</p>
+                    </div>
+                    <!-- Botón para descargar la carpeta img -->
+                    <button onclick="downloadImgZip()" id="btn-download-img" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2.5 rounded-lg font-medium transition-all shadow-lg flex items-center gap-2 flex-shrink-0">
+                        <i class="fa-solid fa-download text-sm"></i>
+                        <span>Descargar carpeta img (.ZIP)</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Tree Visualizer -->
+                    <div class="bg-dark-card border border-dark-border rounded-xl p-5 font-mono text-sm">
+                        <div class="text-xs text-slate-400 uppercase tracking-wider mb-3 font-sans font-semibold">Directorio Raíz</div>
+                        
+                        <div class="space-y-2 text-slate-300">
+                            <div class="flex items-center text-yellow-400 font-bold">
+                                <i class="fa-regular fa-folder-open mr-2"></i> mi-proyecto/
+                            </div>
+                            <div class="ml-6 space-y-2 border-l border-slate-700 pl-4">
+                                <div class="flex items-center text-orange-400">
+                                    <i class="fa-regular fa-file-code mr-2"></i> index.html
+                                </div>
+                                <div class="flex items-center text-yellow-400">
+                                    <i class="fa-regular fa-folder mr-2"></i> CSS/
+                                </div>
+                                <div class="ml-6 border-l border-slate-700 pl-4">
+                                    <div class="flex items-center text-blue-400">
+                                        <i class="fa-regular fa-file-lines mr-2"></i> style.css
+                                    </div>
+                                </div>
+                                <div class="flex items-center text-yellow-400">
+                                    <i class="fa-regular fa-folder mr-2"></i> img/
+                                </div>
+                                <div class="ml-6 border-l border-slate-700 pl-4 space-y-1.5 text-emerald-400">
+                                    <div class="flex items-center">
+                                        <i class="fa-regular fa-file-image mr-2"></i> images.jpeg
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fa-regular fa-file-image mr-2"></i> lexa.jpeg
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fa-regular fa-file-image mr-2"></i> lexa3.jpg
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Explanations -->
+                    <div class="bg-dark-card border border-dark-border rounded-xl p-5 space-y-4">
+                        <h3 class="text-base font-semibold text-white">Notas Importantes de Rutas:</h3>
+                        
+                        <div class="space-y-3 text-sm text-slate-300">
+                            <div class="p-3 bg-slate-800/80 rounded-lg border border-slate-700">
+                                <strong class="text-orange-400 block mb-1">Ruta del CSS:</strong>
+                                `<link rel="stylesheet" href="CSS/style.css">`<br>
+                                Revisa que la carpeta se llame exactamente <code class="text-yellow-300 bg-slate-900 px-1 py-0.5 rounded">CSS</code> en mayúsculas tal como está configurado.
+                            </div>
+
+                            <div class="p-3 bg-slate-800/80 rounded-lg border border-slate-700">
+                                <div class="flex justify-between items-center mb-1">
+                                    <strong class="text-emerald-400">Ruta de las Imágenes:</strong>
+                                    <button onclick="downloadImgZip()" class="text-xs text-emerald-400 hover:underline flex items-center gap-1">
+                                        <i class="fa-solid fa-file-arrow-down"></i> Descargar img/
+                                    </button>
+                                </div>
+                                `<img src="img/images.jpeg">`<br>
+                                Las imágenes deben guardarse dentro de la carpeta <code class="text-yellow-300 bg-slate-900 px-1 py-0.5 rounded">img</code>. Respeta las extensiones (.jpeg y .jpg).
+                            </div>
+
+                            <div class="p-3 bg-slate-800/80 rounded-lg border border-slate-700">
+                                <strong class="text-blue-400 block mb-1">Nombre del Archivo HTML Principal:</strong>
+                                Debe llamarse estrictamente <code class="text-yellow-300 bg-slate-900 px-1 py-0.5 rounded">index.html</code> (en minúsculas) para que **GitHub Pages** lo reconozca automáticamente como la portada.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: CÓDIGO INDEX.HTML -->
+            <section id="tab-html" class="tab-content space-y-4 hidden">
+                <div class="bg-dark-card border border-dark-border rounded-xl p-4 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-brands fa-html5 text-orange-500"></i>
+                            Código HTML (index.html)
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Copia el siguiente código en tu archivo index.html dentro de la carpeta principal.</p>
+                    </div>
+                </div>
+
+                <div class="relative bg-dark-code border border-dark-border rounded-xl overflow-hidden shadow-xl">
+                    <pre class="p-4 text-xs sm:text-sm font-mono text-slate-300 overflow-x-auto leading-relaxed"><code id="code-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="es"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;Lexa kom Trikru - La Comandante&lt;/title&gt;
+    &lt;link rel="stylesheet" href="CSS/style.css"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+    &lt;!-- Contenedor de la cabecera principal --&gt;
+    &lt;header class="cabecera-principal"&gt;
+        &lt;h1&gt;Lexa kom Trikru&lt;/h1&gt;
+        &lt;p&gt;Heda de la Coalición de los Doce Clanes&lt;/p&gt;
+    &lt;/header&gt;
+
+    &lt;!-- Contenedor del contenido informativo --&gt;
+    &lt;main class="bloque-contenido"&gt;
+        &lt;h2&gt;Biografía del Personaje&lt;/h2&gt;
+        &lt;p&gt;Lexa fue una líder visionaria de la serie &lt;em&gt;Los 100&lt;/em&gt;. Destacó por su frialdad estratégica, su búsqueda de la paz y su icónico lema: &lt;strong&gt;"Jus drein jus daun"&lt;/strong&gt; (la sangre pide sangre), el cual intentó cambiar para romper el ciclo de violencia.&lt;/p&gt;
+        &lt;p&gt;Su liderazgo unió por primera vez a tribus históricamente enemigas para enfrentar amenazas comunes, demostrando una sabiduría superior a su edad.&lt;/p&gt;
+    &lt;/main&gt;
+
+    &lt;!-- Contenedor de la galería de fotos --&gt;
+    &lt;section class="galeria-imagenes"&gt;
+        &lt;h2&gt;Galería de la Comandante&lt;/h2&gt;
+        &lt;div&gt;
+            &lt;img src="img/images.jpeg" alt="Lexa en su trono"&gt;
+            &lt;img src="img/lexa.jpeg" alt="Lexa en combate"&gt;
+            &lt;img src="img/lexa3.jpg" alt="Retrato de Lexa"&gt;
+        &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;!-- Contenedor de las características clave --&gt;
+    &lt;section class="lista-detalles"&gt;
+        &lt;h2&gt;Aspectos Destacados&lt;/h2&gt;
+        &lt;ul&gt;
+            &lt;li&gt;&lt;strong&gt;Origen:&lt;/strong&gt; Clan del Bosque (Trikru).&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Título:&lt;/strong&gt; Comandante (Heda).&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Alianza:&lt;/strong&gt; Creadora de la Coalición de los 12 Clanes.&lt;/li&gt;
+            &lt;li&gt;&lt;strong&gt;Relación clave:&lt;/strong&gt; Clarke Griffin (Clexa).&lt;/li&gt;
+        &lt;/ul&gt;
+    &lt;/section&gt;
+
+    &lt;!-- Contenedor del pie de página --&gt;
+    &lt;footer class="pie-pagina"&gt;
+        &lt;p&gt;&amp;copy; 2026 - Tributo a Los 100. Creado con HTML y CSS estructurado.&lt;/p&gt;
+    &lt;/footer&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+                </div>
+            </section>
+
+            <!-- TAB 4: CÓDIGO CSS -->
+            <section id="tab-css" class="tab-content space-y-4 hidden">
+                <div class="bg-dark-card border border-dark-border rounded-xl p-4 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-brands fa-css3-alt text-blue-500"></i>
+                            Código CSS (CSS/style.css)
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Guarda este código en el archivo style.css dentro de la carpeta CSS.</p>
+                    </div>
+                </div>
+
+                <div class="relative bg-dark-code border border-dark-border rounded-xl overflow-hidden shadow-xl">
+                    <pre class="p-4 text-xs sm:text-sm font-mono text-slate-300 overflow-x-auto leading-relaxed"><code id="code-css">/* --- Estilos Generales --- */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333333;
+}
+
+/* --- Contenedor 1: Cabecera --- */
+.cabecera-principal {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    text-align: center;
+    padding: 40px 20px;
+}
+.cabecera-principal h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    text-transform: uppercase;
+}
+.cabecera-principal p {
+    margin: 10px 0 0 0;
+    font-style: italic;
+    color: #aaaaaa;
+}
+
+/* --- Contenedor 2: Bloque de Contenido --- */
+.bloque-contenido {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 5px;
+}
+.bloque-contenido h2 {
+    color: #1a1a1a;
+    border-bottom: 2px solid #333333;
+    padding-bottom: 10px;
+}
+.bloque-contenido p {
+    text-align: justify;
+    margin-bottom: 15px;
+}
+.bloque-contenido strong {
+    color: #8b0000;
+}
+
+/* --- Sub-contenedor: Tarjeta de imagen interna --- */
+.tarjeta-imagen {
+    float: right;
+    max-width: 250px;
+    margin: 0 0 15px 20px;
+    padding: 5px;
+    border: 1px solid #dddddd;
+    background-color: #fafafa;
+    text-align: center;
+}
+.tarjeta-imagen img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+.tarjeta-imagen p {
+    font-size: 0.8rem;
+    color: #666666;
+    margin: 5px 0 0 0;
+    font-style: italic;
+}
+
+/* --- Contenedor 3: Galería de Imágenes --- */
+.galeria-imagenes {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 5px;
+}
+.galeria-imagenes h2 {
+    color: #1a1a1a;
+    border-bottom: 2px solid #333333;
+    padding-bottom: 10px;
+}
+.galeria-imagenes div {
+    display: flex;
+    gap: 15px;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+.galeria-imagenes img {
+    width: 31%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 3px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.galeria-imagenes img:hover{
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+    border-bottom: 2px solid #8b0000;
+}
+
+/* --- Contenedor 4: Lista de Detalles --- */
+.lista-detalles {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #222222;
+    color: #ffffff;
+    border-radius: 5px;
+}
+.lista-detalles h2 {
+    margin-top: 0;
+}
+.lista-detalles ul {
+    list-style-type: square;
+    padding-left: 20px;
+}
+.lista-detalles li {
+    margin-bottom: 10px;
+}
+
+/* --- Contenedor 5: Pie de Página --- */
+.pie-pagina {
+    clear: both; /* Evita conflictos con el float de la tarjeta */
+    text-align: center;
+    padding: 20px;
+    background-color: #1a1a1a;
+    color: #777777;
+    margin-top: 40px;
+}
+.pie-pagina p {
+    margin: 0;
+    font-size: 0.9rem;
+}</code></pre>
+                </div>
+            </section>
+
+            <!-- TAB 5: PUBLICAR EN GITHUB -->
+            <section id="tab-github" class="tab-content space-y-6 hidden">
+                <div class="bg-dark-card border border-dark-border rounded-xl p-5">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2 mb-1">
+                        <i class="fa-brands fa-github text-white"></i>
+                        Paso a Paso: Subir Repositorio a GitHub
+                    </h2>
+                    <p class="text-sm text-slate-400">Sigue este flujo secuencial en la terminal de Visual Studio Code para subir tus archivos a GitHub.</p>
+                    <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
+                        <span class="text-orange-300">¡Visita mi perfil y sígueme en GitHub!</span>
+                        <a href="https://github.com/EMARTINEZ1993" target="_blank" rel="noopener noreferrer" class="inline-flex w-fit max-w-full items-center gap-2 text-orange-300 hover:text-orange-200 hover:underline break-all">
+                            <i class="fa-brands fa-github"></i>
+                            github.com/EMARTINEZ1993
+                        </a>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Step 1 -->
+                    <div class="bg-dark-card border border-dark-border rounded-xl p-5 relative pl-12">
+                        <div class="absolute left-4 top-5 w-6 h-6 rounded-full bg-brand-800 text-brand-100 flex items-center justify-center font-bold text-xs">1</div>
+                        <h3 class="text-base font-semibold text-white mb-2">Crear el repositorio en la web de GitHub</h3>
+                        <ol class="list-disc list-inside text-sm text-slate-300 space-y-1">
+                            <li>Ingresa a tu cuenta de <a href="https://github.com" target="_blank" class="text-brand-500 hover:underline">GitHub.com</a>.</li>
+                            <li>Haz clic en el botón verde <strong>"New"</strong> o en el símbolo <strong>"+"</strong> arriba a la derecha.</li>
+                            <li>Nombra el repositorio (ejemplo: <code class="bg-slate-800 px-1.5 py-0.5 rounded text-yellow-300">lexa-tributo</code> o <code class="bg-slate-800 px-1.5 py-0.5 rounded text-yellow-300">mi-proyecto</code>).</li>
+                            <li>Déjalo en modo <strong>Public</strong> (público) para que GitHub Pages sea gratuito.</li>
+                            <li><strong>IMPORTANTE:</strong> No marques las casillas de agregar README, .gitignore o licencia por ahora.</li>
+                            <li>Haz clic en <strong>"Create repository"</strong>.</li>
+                        </ol>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="bg-dark-card border border-dark-border rounded-xl p-5 relative pl-12">
+                        <div class="absolute left-4 top-5 w-6 h-6 rounded-full bg-brand-800 text-brand-100 flex items-center justify-center font-bold text-xs">2</div>
+                        <h3 class="text-base font-semibold text-white mb-2">Abrir la Terminal en Visual Studio Code</h3>
+                        <p class="text-sm text-slate-300 mb-2">En VS Code, abre la carpeta donde tienes guardado tu proyecto y abre la terminal usando el menú superior <code class="bg-slate-800 px-1.5 py-0.5 rounded text-slate-200">Terminal -> New Terminal</code> o con el atajo <code class="bg-slate-800 px-1.5 py-0.5 rounded text-slate-200">Ctrl + ~</code>.</p>
+                    </div>
+
+                    <!-- Step 3: Commands Sequence -->
+                    <div class="bg-dark-card border border-dark-border rounded-xl p-5 relative pl-12">
+                        <div class="absolute left-4 top-5 w-6 h-6 rounded-full bg-brand-800 text-brand-100 flex items-center justify-center font-bold text-xs">3</div>
+                        <h3 class="text-base font-semibold text-white mb-2">Ejecutar la secuencia de comandos Git</h3>
+                        <p class="text-sm text-slate-300 mb-3">Ejecuta uno a uno los siguientes comandos en tu terminal:</p>
+
+                        <div class="space-y-3 font-mono text-xs sm:text-sm">
+                            <div class="bg-dark-code border border-slate-700/60 p-3 rounded-lg flex items-center justify-between">
+                                <div>
+                                    <span class="text-slate-500"># 1. Inicializar repositorio Git local</span><br>
+                                    <span class="text-emerald-400">git init</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-dark-code border border-slate-700/60 p-3 rounded-lg flex items-center justify-between">
+                                <div>
+                                    <span class="text-slate-500"># 2. Agregar todos los archivos al área de preparación</span><br>
+                                    <span class="text-emerald-400">git add .</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-dark-code border border-slate-700/60 p-3 rounded-lg flex items-center justify-between">
+                                <div>
+                                    <span class="text-slate-500"># 3. Guardar cambios con mensaje inicial</span><br>
+                                    <span class="text-emerald-400">git commit -m "Initial commit"</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-dark-code border border-slate-700/60 p-3 rounded-lg flex items-center justify-between">
+                                <div>
+                                    <span class="text-slate-500"># 4. Cambiar rama principal a 'main'</span><br>
+                                    <span class="text-emerald-400">git branch -M main</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-dark-code border border-slate-700/60 p-3 rounded-lg flex items-center justify-between min-w-0">
+                                <div class="min-w-0 flex-1 pr-2">
+                                    <span class="text-slate-500"># 5. Copiar la URL dada por GitHub y vincular (Reemplaza la URL)</span><br>
+                                    <span class="text-emerald-400 break-all font-mono text-xs sm:text-sm">git remote add origin https://github.com/TU-USUARIO/TU-REPOSITORIO.git</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-dark-code border border-slate-700/60 p-3 rounded-lg flex items-center justify-between min-w-0">
+                                <div class="min-w-0 flex-1 pr-2">
+                                    <span class="text-slate-500"># 6. Subir tu código a GitHub</span><br>
+                                    <span class="text-emerald-400 font-mono text-xs sm:text-sm">git push -u origin main</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 6: DESPLEGAR EN GITHUB PAGES -->
+            <section id="tab-pages" class="tab-content space-y-6 hidden">
+                <div class="bg-dark-card border border-dark-border rounded-xl p-5">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2 mb-1">
+                        <i class="fa-solid fa-globe text-emerald-400"></i>
+                        Desplegar la Página con GitHub Pages
+                    </h2>
+                    <p class="text-sm text-slate-400">Activa el alojamiento gratuito de GitHub para que cualquier persona pueda visitar tu página web en internet.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Step Box 1 -->
+                    <div class="bg-dark-card border border-dark-border p-5 rounded-xl space-y-2">
+                        <div class="flex items-center space-x-2 text-emerald-400 font-bold">
+                            <span class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">1</span>
+                            <span>Aceder a Settings</span>
+                        </div>
+                        <p class="text-sm text-slate-300">Dentro de tu repositorio en GitHub, dirígete a la barra superior del menú y haz clic en la pestaña con ícono de engranaje <strong>"Settings"</strong> (Configuración).</p>
+                    </div>
+
+                    <!-- Step Box 2 -->
+                    <div class="bg-dark-card border border-dark-border p-5 rounded-xl space-y-2">
+                        <div class="flex items-center space-x-2 text-emerald-400 font-bold">
+                            <span class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">2</span>
+                            <span>Ir a la sección Pages</span>
+                        </div>
+                        <p class="text-sm text-slate-300">En el menú lateral izquierdo, busca la sección **"Code and automation"** y selecciona la opción <strong>"Pages"</strong>.</p>
+                    </div>
+
+                    <!-- Step Box 3 -->
+                    <div class="bg-dark-card border border-dark-border p-5 rounded-xl space-y-2">
+                        <div class="flex items-center space-x-2 text-emerald-400 font-bold">
+                            <span class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">3</span>
+                            <span>Configurar la Rama (Branch)</span>
+                        </div>
+                        <p class="text-sm text-slate-300">En el apartado <strong>"Build and deployment"</strong> -> <strong>"Branch"</strong>:</p>
+                        <ul class="list-disc list-inside text-xs text-slate-400 space-y-1">
+                            <li>Cambia el selector de <em>None</em> a <strong class="text-white">main</strong>.</li>
+                            <li>Asegúrate de que la carpeta esté en <strong class="text-white">/(root)</strong>.</li>
+                            <li>Presiona el botón <strong class="text-emerald-400">"Save"</strong> (Guardar).</li>
+                        </ul>
+                    </div>
+
+                    <!-- Step Box 4 -->
+                    <div class="bg-dark-card border border-dark-border p-5 rounded-xl space-y-2">
+                        <div class="flex items-center space-x-2 text-emerald-400 font-bold">
+                            <span class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs">4</span>
+                            <span>Obtener el Enlace Publicado</span>
+                        </div>
+                        <p class="text-sm text-slate-300">Espera de 1 a 3 minutos. Recarga la página y verás un cuadro verde en la parte superior con la URL final de tu sitio web publicado.</p>
+                    </div>
+                </div>
+
+                <!-- Final URL preview box -->
+                <div class="bg-gradient-to-r from-emerald-950/40 to-slate-900 border border-emerald-500/40 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center space-x-3 min-w-0">
+                        <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg flex-shrink-0">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-sm font-semibold text-white">¡Enlace web listo!</p>
+                            <p class="text-xs font-mono text-emerald-300 break-all">https://tu-usuario.github.io/nombre-repositorio/</p>
+                        </div>
+                    </div>
+                    <div class="text-xs text-slate-400 bg-slate-800/80 px-3 py-2 rounded-lg border border-slate-700 flex-shrink-0">
+                        <i class="fa-solid fa-circle-info text-blue-400 mr-1"></i> Publicación exitosa
+                    </div>
+                </div>
+            </section>
+
+
+
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-emerald-600 text-white px-4 py-2.5 rounded-lg shadow-xl text-xs font-medium flex items-center space-x-2 opacity-0 pointer-events-none transition-opacity duration-300 z-50">
+        <i class="fa-solid fa-check"></i>
+        <span id="toast-msg">Copiado al portapapeles</span>
+    </div>
+
+    <script>
+        document.addEventListener('copy', (event) => event.preventDefault());
+        document.addEventListener('cut', (event) => event.preventDefault());
+        document.addEventListener('paste', (event) => event.preventDefault());
+        document.addEventListener('contextmenu', (event) => event.preventDefault());
+        document.addEventListener('keydown', (event) => {
+            const key = event.key.toLowerCase();
+            const clipboardShortcut = (event.ctrlKey || event.metaKey) && ['c', 'x', 'v'].includes(key);
+            const insertShortcut = key === 'insert' && (event.ctrlKey || event.shiftKey);
+
+            if (clipboardShortcut || insertShortcut) {
+                event.preventDefault();
+            }
+        });
+
+        // Tab switching logic
+        function switchTab(tabId) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.add('hidden'));
+
+            // Show selected tab content
+            const activeContent = document.getElementById(`tab-${tabId}`);
+            if (activeContent) {
+                activeContent.classList.remove('hidden');
+            }
+
+            // Reset buttons styling
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-brand-700', 'bg-purple-700', 'text-white', 'shadow-md');
+                btn.classList.add('text-slate-300', 'hover:bg-slate-800', 'hover:text-white');
+            });
+
+            // Set active button style
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            if (activeBtn) {
+                if (tabId === 'ai') {
+                    activeBtn.classList.add('bg-purple-700', 'text-white', 'shadow-md');
+                } else {
+                    activeBtn.classList.add('bg-brand-700', 'text-white', 'shadow-md');
+                }
+                activeBtn.classList.remove('text-slate-300', 'hover:bg-slate-800', 'hover:text-white');
+            }
+        }
+
+        // Sub-tabs switching in AI section
+        function switchSubAiTab(subTabId) {
+            const subContents = document.querySelectorAll('.sub-ai-content');
+            subContents.forEach(content => content.classList.add('hidden'));
+
+            const activeSub = document.getElementById(`subtab-${subTabId}`);
+            if (activeSub) activeSub.classList.remove('hidden');
+
+            const subBtns = document.querySelectorAll('.sub-ai-btn');
+            subBtns.forEach(btn => {
+                btn.classList.remove('bg-purple-700', 'text-white', 'shadow-md');
+                btn.classList.add('text-slate-300', 'hover:bg-slate-800');
+            });
+
+            const activeSubBtn = document.getElementById(`subbtn-${subTabId}`);
+            if (activeSubBtn) {
+                activeSubBtn.classList.add('bg-purple-700', 'text-white', 'shadow-md');
+                activeSubBtn.classList.remove('text-slate-300', 'hover:bg-slate-800');
+            }
+        }
+
+        // Gemini API Caller Utility with Exponential Backoff
+        async function callGeminiAPI(payload, retries = 3, backoff = 1000) {
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 429 && i < retries - 1) {
+                            await new Promise(r => setTimeout(r, backoff));
+                            backoff *= 2;
+                            continue;
+                        }
+                        throw new Error(`API Error status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    return data;
+                } catch (err) {
+                    if (i === retries - 1) throw err;
+                    await new Promise(r => setTimeout(r, backoff));
+                    backoff *= 2;
+                }
+            }
+        }
+
+        // 1. Generate README with Gemini
+        async function generateReadmeWithAI() {
+            const title = document.getElementById('ai-readme-title').value.trim() || 'Proyecto Web';
+            const author = document.getElementById('ai-readme-author').value.trim() || 'Usuario';
+            const desc = document.getElementById('ai-readme-desc').value.trim() || 'Proyecto tributo HTML y CSS';
+            const btn = document.getElementById('btn-gen-readme');
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Generando README con IA...</span>`;
+
+            const systemPrompt = "Eres un desarrollador web experto en GitHub. Genera un archivo README.md en español, bien formateado en Markdown, con badges, descripción, estructura de archivos, requisitos, cómo instalar/subir a GitHub Pages y créditos. No uses envoltorios de bloques de código markdown triple tildes si vas a mostrar directamente el código plano.";
+            const userPrompt = `Genera un README.md profesional para el repositorio:
+Título: ${title}
+Autor: ${author}
+Descripción: ${desc}
+Incluye instrucciones claras de Git y GitHub Pages.`;
+
+            try {
+                const payload = {
+                    contents: [{ parts: [{ text: userPrompt }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] }
+                };
+
+                const result = await callGeminiAPI(payload);
+                const generatedText = result?.candidates?.[0]?.content?.parts?.[0]?.text || "No se pudo generar el contenido.";
+
+                document.getElementById('ai-readme-output').innerText = generatedText;
+                document.getElementById('ai-readme-output-container').classList.remove('hidden');
+                showToast('README.md generado con exito');
+            } catch (err) {
+                console.error(err);
+                showToast('Error al conectar con Gemini IA');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>Generar README con Gemini IA</span>`;
+            }
+        }
+
+        // 2. Generate Custom Web Code (HTML & CSS)
+        async function generateCustomCodeWithAI() {
+            const topic = document.getElementById('ai-code-topic').value.trim() || 'Tributo Web';
+            const style = document.getElementById('ai-code-style').value;
+            const btn = document.getElementById('btn-gen-code');
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Diseñando Proyecto con IA...</span>`;
+
+            const systemPrompt = "Eres un diseñador web frontend experto. Genera una estructura completa de un sitio web de una sola página en formato JSON estricto.";
+            const userPrompt = `Crea el código para una página tributo/web sobre '${topic}' con un estilo visual '${style}'. Devuelve únicamente un JSON con la estructura { "html": "código html completo...", "css": "código css completo..." }.`;
+
+            try {
+                const payload = {
+                    contents: [{ parts: [{ text: userPrompt }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                "html": { "type": "STRING" },
+                                "css": { "type": "STRING" }
+                            },
+                            propertyOrdering: ["html", "css"]
+                        }
+                    }
+                };
+
+                const result = await callGeminiAPI(payload);
+                const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (jsonText) {
+                    const parsed = JSON.parse(jsonText);
+                    document.getElementById('ai-generated-html').innerText = parsed.html || '';
+                    document.getElementById('ai-generated-css').innerText = parsed.css || '';
+                    document.getElementById('ai-code-output-container').classList.remove('hidden');
+                    showToast('Proyecto generado correctamente');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Error al generar el proyecto con IA');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-code"></i> <span>Crear Proyecto Completo con IA</span>`;
+            }
+        }
+
+        // 3. Ask AI Tutor
+        async function askAITutor() {
+            const queryInput = document.getElementById('ai-tutor-query');
+            const query = queryInput.value.trim();
+            if (!query) return;
+
+            const btn = document.getElementById('btn-ask-tutor');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i>`;
+
+            const systemPrompt = "Eres un tutor didáctico y amable de programación web y Git/GitHub para principiantes. Responde en español de forma directa, concisa y estructurada con pasos numerados o bloques de código si aplica.";
+
+            try {
+                const payload = {
+                    contents: [{ parts: [{ text: query }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] }
+                };
+
+                const result = await callGeminiAPI(payload);
+                const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Sin respuesta.";
+
+                document.getElementById('ai-tutor-response').innerText = text;
+                document.getElementById('ai-tutor-response-container').classList.remove('hidden');
+            } catch (err) {
+                console.error(err);
+                showToast('Error al obtener respuesta del tutor');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> <span>Consultar</span>`;
+            }
+        }
+
+        function presetQuery(text) {
+            document.getElementById('ai-tutor-query').value = text;
+            askAITutor();
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            toastMsg.innerText = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        // Función para empaquetar y descargar la carpeta img en un archivo .ZIP
+        async function downloadImgZip() {
+            const btn = document.getElementById('btn-download-img');
+            const originalText = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Generando ZIP...</span>`;
+            }
+
+            try {
+                const zip = new JSZip();
+                const imgFolder = zip.folder("img");
+
+                // Lista de imágenes requeridas con fuentes optimizadas
+                const imagesToFetch = [
+                    { name: "images.jpeg", url: "img/images.jpeg" },
+                    { name: "lexa.jpeg", url: "img/lexa.jpeg"},
+                    { name: "lexa3.jpg", url: "img/lexa3.jpg" }
+                ];
+
+                for (const img of imagesToFetch) {
+                    const response = await fetch(img.url);
+                    const blob = await response.blob();
+                    imgFolder.file(img.name, blob);
+                }
+
+                const zipContent = await zip.generateAsync({ type: "blob" });
+                saveAs(zipContent, "img.zip");
+                showToast("Carpeta img.zip descargada con éxito");
+            } catch (err) {
+                console.error("Error al descargar imágenes: ", err);
+                showToast("Error al empaquetar la carpeta img");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            }
+        }
+
+        // Mouse-Proximity Interactive Dot Grid Canvas Effect (Stitch / Modern AI UI Style)
+        (function() {
+            const canvas = document.getElementById('dot-grid-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            let width = 0;
+            let height = 0;
+            let dpr = window.devicePixelRatio || 1;
+
+            // Coordinates and state of the cursor
+            let mouse = { x: -1000, y: -1000, targetX: -1000, targetY: -1000, active: false };
+
+            const GRID_SPACING = 28; // Distance between grid points in px
+            const BASE_RADIUS = 1.2;  // Rest dot radius
+            const MAX_RADIUS = 2.8;   // Max dot radius when hovered
+            const HOVER_RADIUS = 150; // Radius of mouse influence
+
+            function resize() {
+                dpr = window.devicePixelRatio || 1;
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width * dpr;
+                canvas.height = height * dpr;
+                canvas.style.width = width + 'px';
+                canvas.style.height = height + 'px';
+                ctx.scale(dpr, dpr);
+            }
+
+            window.addEventListener('resize', resize);
+            resize();
+
+            // Track mouse movements
+            window.addEventListener('mousemove', (e) => {
+                mouse.targetX = e.clientX;
+                mouse.targetY = e.clientY;
+                mouse.active = true;
+            });
+
+            window.addEventListener('mouseleave', () => {
+                mouse.active = false;
+            });
+
+            // Touch support for touchscreens / mobile devices
+            window.addEventListener('touchmove', (e) => {
+                if (e.touches && e.touches.length > 0) {
+                    mouse.targetX = e.touches[0].clientX;
+                    mouse.targetY = e.touches[0].clientY;
+                    mouse.active = true;
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', () => {
+                mouse.active = false;
+            });
+
+            // Animation Loop using requestAnimationFrame
+            function render() {
+                // Smooth interpolation (lerp) towards cursor
+                mouse.x += (mouse.targetX - mouse.x) * 0.15;
+                mouse.y += (mouse.targetY - mouse.y) * 0.15;
+
+                ctx.clearRect(0, 0, width, height);
+
+                // Subtle radial aura around the active cursor
+                if (mouse.active && mouse.x > 0 && mouse.y > 0) {
+                    const glowGradient = ctx.createRadialGradient(
+                        mouse.x, mouse.y, 0,
+                        mouse.x, mouse.y, HOVER_RADIUS * 1.3
+                    );
+                    glowGradient.addColorStop(0, 'rgba(239, 68, 68, 0.09)'); // Crimson accent glow
+                    glowGradient.addColorStop(0.5, 'rgba(168, 85, 247, 0.04)'); // Purple transition
+                    glowGradient.addColorStop(1, 'rgba(15, 23, 42, 0)');
+                    ctx.fillStyle = glowGradient;
+                    ctx.beginPath();
+                    ctx.arc(mouse.x, mouse.y, HOVER_RADIUS * 1.3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                const cols = Math.ceil(width / GRID_SPACING) + 1;
+                const rows = Math.ceil(height / GRID_SPACING) + 1;
+
+                // Draw dots grid
+                for (let i = 0; i < cols; i++) {
+                    for (let j = 0; j < rows; j++) {
+                        const x = i * GRID_SPACING;
+                        const y = j * GRID_SPACING;
+
+                        let dx = x - mouse.x;
+                        let dy = y - mouse.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy);
+
+                        let factor = 0;
+                        if (mouse.active && dist < HOVER_RADIUS) {
+                            factor = 1 - (dist / HOVER_RADIUS);
+                            factor = Math.pow(factor, 2); // Quadratic ease-out for smoother glow
+                        }
+
+                        const currentRadius = BASE_RADIUS + (MAX_RADIUS - BASE_RADIUS) * factor;
+
+                        // Color transition: Base subtle slate (#334155) -> Active Crimson Red (#ef4444)
+                        let r = Math.round(51 + (239 - 51) * factor);
+                        let g = Math.round(65 + (68 - 65) * factor);
+                        let b = Math.round(85 + (68 - 85) * factor);
+                        let alpha = 0.18 + factor * 0.72; // From ~18% to 90% opacity
+
+                        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                        ctx.beginPath();
+                        ctx.arc(x, y, currentRadius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                requestAnimationFrame(render);
+            }
+
+            requestAnimationFrame(render);
+        })();
+    </script>
+</body>
+</html>

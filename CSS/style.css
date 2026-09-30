@@ -1,0 +1,137 @@
+/* --- Estilos Generales --- */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333333;
+}
+
+/* --- Contenedor 1: Cabecera --- */
+.cabecera-principal {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    text-align: center;
+    padding: 40px 20px;
+}
+.cabecera-principal h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    text-transform: uppercase;
+}
+.cabecera-principal p {
+    margin: 10px 0 0 0;
+    font-style: italic;
+    color: #aaaaaa;
+}
+
+/* --- Contenedor 2: Bloque de Contenido --- */
+.bloque-contenido {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 5px;
+}
+.bloque-contenido h2 {
+    color: #1a1a1a;
+    border-bottom: 2px solid #333333;
+    padding-bottom: 10px;
+}
+.bloque-contenido p {
+    text-align: justify;
+    margin-bottom: 15px;
+}
+.bloque-contenido strong {
+    color: #8b0000;
+}
+
+/* --- Sub-contenedor: Tarjeta de imagen interna --- */
+.tarjeta-imagen {
+    float: right;
+    max-width: 250px;
+    margin: 0 0 15px 20px;
+    padding: 5px;
+    border: 1px solid #dddddd;
+    background-color: #fafafa;
+    text-align: center;
+}
+.tarjeta-imagen img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+.tarjeta-imagen p {
+    font-size: 0.8rem;
+    color: #666666;
+    margin: 5px 0 0 0;
+    font-style: italic;
+}
+
+/* --- Contenedor 3: Galería de Imágenes --- */
+.galeria-imagenes {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 5px;
+}
+.galeria-imagenes h2 {
+    color: #1a1a1a;
+    border-bottom: 2px solid #333333;
+    padding-bottom: 10px;
+}
+.galeria-imagenes div {
+    display: flex;
+    gap: 15px;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+.galeria-imagenes img {
+    width: 31%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 3px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.galeria-imagenes img:hover{
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+    border-bottom: 2px solid #8b0000;
+}
+
+/* --- Contenedor 4: Lista de Detalles --- */
+.lista-detalles {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #222222;
+    color: #ffffff;
+    border-radius: 5px;
+}
+.lista-detalles h2 {
+    margin-top: 0;
+}
+.lista-detalles ul {
+    list-style-type: square;
+    padding-left: 20px;
+}
+.lista-detalles li {
+    margin-bottom: 10px;
+}
+
+/* --- Contenedor 5: Pie de Página --- */
+.pie-pagina {
+    clear: both; /* Evita conflictos con el float de la tarjeta */
+    text-align: center;
+    padding: 20px;
+    background-color: #1a1a1a;
+    color: #777777;
+    margin-top: 40px;
+}
+.pie-pagina p {
+    margin: 0;
+    font-size: 0.9rem;
+
+}
