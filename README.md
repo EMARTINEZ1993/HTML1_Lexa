@@ -28,3 +28,7 @@ HTML1_Lexa/
 ## Autor
 
 [EMARTINEZ1993](https://github.com/EMARTINEZ1993)
+
+## Licencia
+
+Este proyecto es de uso educativo y libre para consultar o reutilizar con fines de aprendizaje.
