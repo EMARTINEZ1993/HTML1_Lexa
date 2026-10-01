@@ -24,6 +24,7 @@ HTML1_Lexa/
 - HTML5 y CSS3
 - Tailwind CSS mediante CDN
 - JavaScript para navegación, vista previa y descarga de imágenes
+- Diseño responsivo para verse bien en móvil y escritorio
 
 ## Autor
 
